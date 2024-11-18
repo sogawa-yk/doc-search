@@ -1,3 +1,4 @@
 oracledb
 requests
 gradio
+htmlrag
