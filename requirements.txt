@@ -1,4 +1,0 @@
-oracledb
-requests
-gradio
-htmlrag

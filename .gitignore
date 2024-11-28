@@ -1,2 +1,4 @@
-wallet/*
-html_data/*
+langchain/wallet/*
+langchain/html_data/*
+
+.env
