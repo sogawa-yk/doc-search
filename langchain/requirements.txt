@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+pydantic
+oci
+oracledb
+langchain
+langchain-community
+langchain-core
+unstructured
+python-multipart
+python-dotenv
