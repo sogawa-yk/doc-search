@@ -5,5 +5,6 @@ Oracle DatabaseをOCI上にプロビジョニングし、langchainディレク�
 langchainディレクトリにhtml_dataというディレクトリを作成し、RAGに使用したいhtmlをそのディレクトリに配置する。
 ## 起動
 ```bash
+docker build -t langchain .
 docker run -v ~/.oci:/root/.oci -p 8000:8000 langchain
 ```
