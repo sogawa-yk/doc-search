@@ -1,26 +1,24 @@
-import { Tables } from "@/supabase/types"
-import { ChatMessage, LLMID } from "."
+import { OpenAIModel } from './openai';
 
-export interface ChatSettings {
-  model: LLMID
-  prompt: string
-  temperature: number
-  contextLength: number
-  includeProfileContext: boolean
-  includeWorkspaceInstructions: boolean
-  embeddingsProvider: "openai" | "local"
+export interface Message {
+  role: Role;
+  content: string;
 }
 
-export interface ChatPayload {
-  chatSettings: ChatSettings
-  workspaceInstructions: string
-  chatMessages: ChatMessage[]
-  assistant: Tables<"assistants"> | null
-  messageFileItems: Tables<"file_items">[]
-  chatFileItems: Tables<"file_items">[]
+export type Role = 'assistant' | 'user';
+
+export interface ChatBody {
+  model: OpenAIModel;
+  messages: Message[];
+  key: string;
+  prompt: string;
 }
 
-export interface ChatAPIPayload {
-  chatSettings: ChatSettings
-  messages: Tables<"messages">[]
+export interface Conversation {
+  id: string;
+  name: string;
+  messages: Message[];
+  model: OpenAIModel;
+  prompt: string;
+  folderId: string | null;
 }

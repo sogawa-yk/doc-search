@@ -21,9 +21,9 @@ COPY wallet /app/wallet
 ENV PYTHONUNBUFFERED=1
 
 # スクリプトをコピー
-COPY app.py app.py
-COPY html_data /app/html_data
+COPY app /app/
+COPY html_data /app/html_data/
 COPY .env .
 
 # 実行
-CMD ["python", "app.py"]
+CMD ["python", "main.py"]

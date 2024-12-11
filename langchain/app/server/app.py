@@ -11,8 +11,8 @@ import logging
 
 from pydantic import BaseModel
 
-from app.models.simple_conversation_chat import SimpleConversationChat
-from app.models.summary_conversation_chat import SummaryConversationChat
+from models.simple_conversation_chat import SimpleConversationChat
+from models.summary_conversation_chat import SummaryConversationChat
 
 from langchain_community.embeddings import OCIGenAIEmbeddings
 from langchain_core.prompts import ChatPromptTemplate
@@ -26,18 +26,8 @@ from langchain.schema.output_parser import StrOutputParser
 
 import oracledb
 
-
-
 logging.basicConfig(level=logging.INFO)
-load_dotenv()
-
-def get_required_env(key: str) -> str:
-    value = os.getenv(key)
-    if not value:
-        raise ValueError(f"Required environment variable {key} is not set")
-    return value
-
-
+load_dotenv('/app/.env')
 
 app = FastAPI(
     title="LangChain API",
@@ -152,27 +142,27 @@ async def startup_event():
 
     # データベース接続情報を環境変数から取得
     connection = oracledb.connect(
-        user=get_required_env("DB_USERNAME"),
-        password=get_required_env("DB_PASSWORD"),
-        dsn=get_required_env("DB_DSN"),
-        config_dir=get_required_env("WALLET_DIR"),
-        wallet_location=get_required_env("WALLET_DIR"),
-        wallet_password=get_required_env("WALLET_PASSWORD")
+        user=os.getenv("DB_USERNAME"),
+        password=os.getenv("DB_PASSWORD"),
+        dsn=os.getenv("DB_DSN"),
+        config_dir=os.getenv("WALLET_DIR"),
+        wallet_location=os.getenv("WALLET_DIR"),
+        wallet_password=os.getenv("WALLET_PASSWORD")
     )
 
     # OCIの設定を環境変数から取得
     embeddings = OCIGenAIEmbeddings(
-        model_id=get_required_env("EMBEDDING_MODEL_ID"),
-        service_endpoint=get_required_env("OCI_SERVICE_ENDPOINT"),
-        compartment_id=get_required_env("OCI_COMPARTMENT_ID"),
-        auth_profile=get_required_env("OCI_AUTH_PROFILE")
+        model_id=os.getenv("EMBEDDING_MODEL_ID"),
+        service_endpoint=os.getenv("OCI_SERVICE_ENDPOINT"),
+        compartment_id=os.getenv("OCI_COMPARTMENT_ID"),
+        auth_profile=os.getenv("OCI_AUTH_PROFILE")
     )
 
     vector_store_dot = OracleVS.from_documents(
         docs,
         embeddings,
         client=connection,
-        table_name=get_required_env("VECTOR_TABLE_NAME"),
+        table_name=os.getenv("VECTOR_TABLE_NAME"),
         distance_strategy=DistanceStrategy.DOT_PRODUCT,
     )
 
@@ -185,14 +175,14 @@ async def startup_event():
     prompt = ChatPromptTemplate.from_template(template)
 
     llm = ChatOCIGenAI(
-        model_id=get_required_env("LLM_MODEL_ID"),
-        service_endpoint=get_required_env("OCI_SERVICE_ENDPOINT"),
-        compartment_id=get_required_env("OCI_COMPARTMENT_ID"),
+        model_id=os.getenv("LLM_MODEL_ID"),
+        service_endpoint=os.getenv("OCI_SERVICE_ENDPOINT"),
+        compartment_id=os.getenv("OCI_COMPARTMENT_ID"),
         model_kwargs={
             "temperature": float(os.getenv("LLM_TEMPERATURE", "0.7")),
             "max_tokens": int(os.getenv("LLM_MAX_TOKENS", "500"))
         },
-        auth_profile=get_required_env("OCI_AUTH_PROFILE")
+        auth_profile=os.getenv("OCI_AUTH_PROFILE")
     )
 
     retriever = vector_store_dot.as_retriever()
