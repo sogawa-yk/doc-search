@@ -1,0 +1,36 @@
+version: '3'
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - OPENAI_API_HOST=http://backend:8000
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    networks:
+      - chat-network
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./langchain
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ~/.oci:/root/.oci
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    networks:
+      - chat-network
+
+networks:
+  chat-network:
+    driver: bridge
+
+volumes:
+  oci-config:

@@ -1,11 +1,11 @@
 import threading
 
 from langchain import ConversationChain
-from langchain.callbacks import CallbackManager
+from langchain.callbacks.manager import CallbackManager
 from langchain_community.chat_models.oci_generative_ai import ChatOCIGenAI
 from langchain.memory import ConversationBufferMemory
 
-from app.callbacks.streaming import ThreadedGenerator, ChainStreamHandler
+from callbacks.streaming import ThreadedGenerator, ChainStreamHandler
 
 
 class SimpleConversationChat:
