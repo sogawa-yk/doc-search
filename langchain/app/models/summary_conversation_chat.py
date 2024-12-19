@@ -1,16 +1,12 @@
-import threading
-import os
+import asyncio
 from typing import List
-
 from langchain_core.messages import HumanMessage, AIMessage
 from langchain_core.runnables import RunnableWithMessageHistory
 from langchain_community.chat_models.oci_generative_ai import ChatOCIGenAI
 from langchain.memory import ChatMessageHistory
 from langchain.prompts import ChatPromptTemplate
-
 from callbacks.streaming import ThreadedGenerator, ChainStreamHandler
-
-import oci
+import os
 import logging
 
 logging.getLogger('oci').setLevel(logging.DEBUG)
@@ -45,6 +41,7 @@ class SummaryConversationChat:
             input_messages_key="input",
             history_messages_key="history"
         )
+        logging.info('Chat Initialization Complited')
 
     def set_memory(self, history):
         for message in history:
@@ -55,23 +52,35 @@ class SummaryConversationChat:
 
     def generator(self, user_message):
         g = ThreadedGenerator()
-        threading.Thread(target=self.llm_thread, args=(g, user_message)).start()
-        return g
+        handler = ChainStreamHandler(g)
+        
+        async def process_response():
+            try:
+                logging.info(f"Sending message to LLM: {user_message}")
+                
+                # コールバックハンドラーを設定して非同期で実行
+                response = await self.chain.ainvoke(
+                    {"input": user_message},
+                    config={
+                        "configurable": {"session_id": "default"},
+                        "callbacks": [handler]
+                    }
+                )
+                logging.info(f"Response received: {response}")
+                
+                # メッセージ履歴に追加
+                self.message_history.add_message(HumanMessage(content=user_message))
+                self.message_history.add_message(AIMessage(content=str(response)))
+                
+                # 最初のトークンを送信
+                g.send(str(response))
+                
+            except Exception as e:
+                logging.error(f"Error in process_response: {e}", exc_info=True)
+                g.send(str(e))
+            finally:
+                g.close()
 
-    def llm_thread(self, g, user_message):
-        try:
-            # ストリーミング用のコールバックを設定
-            self.llm.callbacks = [ChainStreamHandler(g)]
-            
-            # 会話の実行
-            response = self.chain.invoke(
-                {"input": user_message},
-                config={"configurable": {"session_id": "default"}}
-            )
-            
-            # メッセージ履歴に追加
-            self.message_history.add_message(HumanMessage(content=user_message))
-            self.message_history.add_message(AIMessage(content=str(response)))
-            
-        finally:
-            g.close()
+        # 非同期タスクを開始
+        asyncio.create_task(process_response())
+        return g

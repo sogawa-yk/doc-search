@@ -6,6 +6,7 @@ WORKDIR /app
 # 必要なシステムパッケージのインストール
 RUN apt-get update && apt-get install -y \
     libaio1 \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # 環境変数の設定

@@ -10,6 +10,8 @@ export const config = {
   runtime: 'edge',
 };
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://backend:8000';
+
 const handler = async (req: Request): Promise<Response> => {
   try {
     const { model, messages, key, prompt } = (await req.json()) as ChatBody;
