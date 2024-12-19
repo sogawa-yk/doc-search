@@ -10,10 +10,12 @@ services:
     environment:
       - OPENAI_API_HOST=http://backend:8000
       - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - NEXT_PUBLIC_API_BASE_URL=http://backend:8000
     networks:
       - chat-network
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
 
   backend:
     build:
@@ -27,6 +29,11 @@ services:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
     networks:
       - chat-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 networks:
   chat-network:

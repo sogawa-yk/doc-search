@@ -77,6 +77,7 @@ const Home: React.FC<HomeProps> = ({
   // FETCH RESPONSE ----------------------------------------------
 
   const handleSend = async (message: Message, deleteCount = 0) => {
+    console.log('index.tsx: handleSend called with message:', message);
     if (selectedConversation) {
       let updatedConversation: Conversation;
 
@@ -108,6 +109,14 @@ const Home: React.FC<HomeProps> = ({
         prompt: updatedConversation.prompt,
       };
 
+      console.log('Sending chat request to:', '/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: chatBody,
+      });
+
       const controller = new AbortController();
       const response = await fetch('/api/chat', {
         method: 'POST',
@@ -118,10 +127,13 @@ const Home: React.FC<HomeProps> = ({
         body: JSON.stringify(chatBody),
       });
 
+      console.log('Response status:', response.status, response.statusText);
+
       if (!response.ok) {
         setLoading(false);
         setMessageIsStreaming(false);
         toast.error(response.statusText);
+        console.error('Chat request failed:', response.statusText);
         return;
       }
 
@@ -255,7 +267,7 @@ const Home: React.FC<HomeProps> = ({
           code: data.error?.code,
           messageLines: [data.error?.message],
         });
-      } catch (e) {}
+      } catch (e) { }
       setModelError(error);
       return;
     }

@@ -304,6 +304,7 @@ export const Chat: FC<Props> = memo(
               model={conversation.model}
               prompts={prompts}
               onSend={(message) => {
+                console.log('Chat.tsx: onSend called with message:', message);
                 setCurrentMessage(message);
                 onSend(message);
               }}
