@@ -5,7 +5,7 @@ from langchain_core.runnables import RunnableWithMessageHistory
 from langchain_community.chat_models.oci_generative_ai import ChatOCIGenAI
 from langchain.memory import ChatMessageHistory
 from langchain.prompts import ChatPromptTemplate
-from callbacks.streaming import ThreadedGenerator, ChainStreamHandler
+from app.callbacks.streaming import ThreadedGenerator, ChainStreamHandler
 import os
 import logging
 
@@ -24,7 +24,8 @@ class SummaryConversationChat:
             auth_profile=os.getenv("OCI_AUTH_PROFILE"),
             model_kwargs={
                 "temperature": float(os.getenv("LLM_TEMPERATURE", "0.7")),
-                "max_tokens": int(os.getenv("LLM_MAX_TOKENS", "500"))
+                "max_tokens": int(os.getenv("LLM_MAX_TOKENS", "500")),
+                "stream": True
             }
         )
 

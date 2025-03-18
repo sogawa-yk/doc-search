@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y \
 
 # 環境変数の設定
 ENV LD_LIBRARY_PATH=/opt/oracle
+ENV PYTHONUNBUFFERED=1
 
 # 必要なPythonパッケージをインストール
 COPY requirements.txt requirements.txt
@@ -19,12 +20,16 @@ RUN pip install --no-cache-dir -r requirements.txt
 # インスタンスウォレットをコピー
 COPY wallet /app/wallet
 
-ENV PYTHONUNBUFFERED=1
-
 # スクリプトをコピー
-COPY app /app/
+COPY app /app/app
 COPY html_data /app/html_data/
 COPY .env .
 
-# 実行
-CMD ["python", "main.py"]
+# ポートの設定
+EXPOSE 8000
+
+# PYTHONPATHを設定
+ENV PYTHONPATH=/app
+
+# FastAPIアプリケーションを起動
+CMD ["uvicorn", "app.server.app:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

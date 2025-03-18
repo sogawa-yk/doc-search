@@ -11,8 +11,8 @@ import logging
 
 from pydantic import BaseModel
 
-from models.simple_conversation_chat import SimpleConversationChat
-from models.summary_conversation_chat import SummaryConversationChat
+from app.models.simple_conversation_chat import SimpleConversationChat
+from app.models.summary_conversation_chat import SummaryConversationChat
 
 from langchain_community.embeddings import OCIGenAIEmbeddings
 from langchain_core.prompts import ChatPromptTemplate
@@ -109,9 +109,16 @@ async def chat_completions(completion_request: CompletionRequest):
         logger.debug(f"History messages: {history_messages}")
         logger.debug(f"Current user message: {user_message}")
 
+        # Get system prompt from the first message if it exists
+        system_prompt = None
+        history_messages = completion_request.messages
+        if history_messages and history_messages[0].role == "system":
+            system_prompt = history_messages[0].content
+            history_messages = history_messages[1:]  # Remove system prompt from history
+
         if completion_request.model == "simple-conversation-chat":
             logger.info("Initializing SimpleConversationChat")
-            chat = SimpleConversationChat(history_messages)
+            chat = SimpleConversationChat(history_messages, system_prompt)
         elif completion_request.model == "summary-conversation-chat":
             logger.info("Initializing SummaryConversationChat")
             chat = SummaryConversationChat(history_messages)
@@ -306,11 +313,12 @@ async def startup_event():
             model_id=os.getenv("LLM_MODEL_ID"),
             service_endpoint=os.getenv("OCI_SERVICE_ENDPOINT"),
             compartment_id=os.getenv("OCI_COMPARTMENT_ID"),
+            auth_profile=os.getenv("OCI_AUTH_PROFILE"),
             model_kwargs={
                 "temperature": float(os.getenv("LLM_TEMPERATURE", "0.7")),
-                "max_tokens": int(os.getenv("LLM_MAX_TOKENS", "500"))
-            },
-            auth_profile=os.getenv("OCI_AUTH_PROFILE")
+                "max_tokens": int(os.getenv("LLM_MAX_TOKENS", "500")),
+                "stream": True
+            }
         )
 
         retriever = vector_store_dot.as_retriever()
